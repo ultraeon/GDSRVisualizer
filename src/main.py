@@ -1,26 +1,20 @@
+# time 10:60 800:1050
+# x 70:100 200:325
+# y 100:130 200:325
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.patches as patches
+import random
 
 import csv
-
-fig, ax = plt.subplots()
-
-ax.set_aspect("equal", adjustable="box")
-ax.set_axis_off()
-
-player_x = 0
-player_y = 0
-player_width = 30
-player_height = 30
-
-player = patches.Rectangle((player_x, player_y), player_width, player_height, color="blue")
-ax.add_patch(player)
-
-def get_lines_from_csv(filepath, color="black"):
+import os
+# get all the lines representing the level from a csv
+def get_lines_from_csv(filepath):
     x_lines = []
     y_lines = []
-
+    
+    # very lazy approach
+    # csv needs to alternate between blank row, x row, and y row
     with open(filepath, "r") as file:
         reader = csv.reader(file)
         type = "blank"
@@ -44,6 +38,7 @@ def get_lines_from_csv(filepath, color="black"):
     
     return x_lines, y_lines
 
+# gets x, y coords at each frame from a csv file
 def get_frames_from_csv(filepath):
     frame_list = []
     with open(filepath, "r") as file:
@@ -52,23 +47,64 @@ def get_frames_from_csv(filepath):
             frame_list.append([int(float(row[0])), int(float(row[1]))])
 
     return frame_list
+
+# gets x, y coords at each frame from multiple players listed in target folder
+def get_all_frames(filepath):
+    csv_paths = os.listdir(filepath)
+    total_frame_list = []
+    for path in csv_paths:
+        total_frame_list.append(get_frames_from_csv(os.path.join(filepath, path)))
     
-def draw_lines(x_lines, y_lines, ax):
+    return total_frame_list
+
+# draws all the lines passed in onto the axis
+def draw_lines(x_lines, y_lines, ax, line_color="black"):
     for i in range(0, len(x_lines)):
-        ax.plot(x_lines[i], y_lines[i], color="black")
+        ax.plot(x_lines[i], y_lines[i], color=line_color)
 
-def draw_frame(frame, frame_list, player):
-    x = frame_list[frame][0]
-    y = frame_list[frame][1]
-    player.set_xy((x, y))
-    ax.set_xlim(x-500, x+500)
-    ax.set_ylim(y-500, y+500)
-    return player, ax
+# redraws at each frame to incorporate new positions of each player and the camera
+def draw_frame(frame, frame_list, spectate_index, player_list):
+    for i in range(0, len(player_list)):
+        if frame < len(frame_list[i]):
+            x = frame_list[i][frame][0]
+            y = frame_list[i][frame][1]
+        else:
+            x = frame_list[i][-1][0]
+            y = frame_list[i][-1][1]
+            
+        player_list[i].set_xy((x, y))
+        if i == spectate_index:
+            ax.set_xlim(x-500, x+500)
+            ax.set_ylim(y-500, y+500)
+    
+    # for blitting
+    artist_list = player_list[:]
+    artist_list.append(ax)
+    return artist_list
 
-# draw_frame function ends here
-x_lines, y_lines = get_lines_from_csv("Tower.csv")
-frame_list = get_frames_from_csv("Frames.csv")
+# get the outline and values for each frame
+x_lines, y_lines = get_lines_from_csv("tower.csv")
+frame_list = get_all_frames("frames")
+
+fig, ax = plt.subplots()
+
+# setup axis
+ax.set_aspect("equal", adjustable="box")
+ax.set_axis_off()
+
+PLAYER_WIDTH = 30
+PLAYER_HEIGHT = 30
+
+# add all player objects with a random color
+player_list = []
+for i in range(0, len(frame_list)):
+    random_color = (random.random(), random.random(), random.random())
+    player_list.append(patches.Rectangle((30*i, 0), PLAYER_WIDTH, PLAYER_HEIGHT, color=random_color))
+    ax.add_patch(player_list[i])
+
 draw_lines(x_lines, y_lines, ax)
 
-anim = animation.FuncAnimation(fig, draw_frame, frames=3850, interval=17, blit=True, repeat=False, fargs=(frame_list, player))
+# run the animation :)
+anim = animation.FuncAnimation(fig, draw_frame, frames=5000, interval=17, blit=True, repeat=False, fargs=(frame_list, -1, player_list))
 plt.show()
+
