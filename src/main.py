@@ -70,5 +70,5 @@ x_lines, y_lines = get_lines_from_csv("Tower.csv")
 frame_list = get_frames_from_csv("Frames.csv")
 draw_lines(x_lines, y_lines, ax)
 
-anim = animation.FuncAnimation(fig, draw_frame, frames=132, interval=500, blit=True, repeat=False, fargs=(frame_list, player))
+anim = animation.FuncAnimation(fig, draw_frame, frames=3850, interval=17, blit=True, repeat=False, fargs=(frame_list, player))
 plt.show()
