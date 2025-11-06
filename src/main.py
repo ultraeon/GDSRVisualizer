@@ -49,7 +49,7 @@ def get_frames_from_csv(filepath):
     with open(filepath, "r") as file:
         reader = csv.reader(file)
         for row in reader:
-            frame_list.append([int(row[1]), int(row[2])])
+            frame_list.append([int(float(row[0])), int(float(row[1]))])
 
     return frame_list
     
