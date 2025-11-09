@@ -105,6 +105,6 @@ for i in range(0, len(frame_list)):
 draw_lines(x_lines, y_lines, ax)
 
 # run the animation :)
-anim = animation.FuncAnimation(fig, draw_frame, frames=5000, interval=17, blit=True, repeat=False, fargs=(frame_list, -1, player_list))
+anim = animation.FuncAnimation(fig, draw_frame, frames=5000, interval=17, blit=True, repeat=False, fargs=(frame_list, 0, player_list))
 plt.show()
 
