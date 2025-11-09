@@ -1,8 +1,8 @@
-(Completed) Melting_Ice, TAS
-(Completed) 7, Gaster319, https://www.youtube.com/watch?v=PC8YJvMt7CM
-11, novertex, https://www.youtube.com/watch?v=OBjvFDYuDqw
-15, MarkoMT, https://www.youtube.com/watch?v=OBmqzONLpLc
-17, ultraeon, https://www.youtube.com/watch?v=aA-_w5O-Lw8
+(Alpha 1.0) Melting_Ice, TAS
+(Alpha 1.0) 7, Gaster319, https://www.youtube.com/watch?v=PC8YJvMt7CM
+(Alpha 1.0) 1, novertex, https://www.youtube.com/watch?v=OBjvFDYuDqw
+(Alpha 1.0) 15, MarkoMT, https://www.youtube.com/watch?v=OBmqzONLpLc
+(Alpha 1.0) 17, ultraeon, https://www.youtube.com/watch?v=aA-_w5O-Lw8
 40, Sudhaniel, https://www.youtube.com/watch?v=7JVL2yFHxjA
 46, Arsenito, https://www.youtube.com/watch?v=OSqH0mN1-pw
 58, Rotunox, https://www.youtube.com/watch?v=kABvFm7FkiI
