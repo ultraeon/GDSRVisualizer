@@ -1,3 +1,4 @@
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.patches as patches
@@ -41,19 +42,23 @@ def get_frames_from_csv(filepath):
     frame_list = []
     with open(filepath, "r") as file:
         reader = csv.reader(file)
+        name = next(reader)[0]
         for row in reader:
             frame_list.append([int(float(row[0])), int(float(row[1]))])
 
-    return frame_list
+    return frame_list, name
 
 # gets x, y coords at each frame from multiple players listed in target folder
 def get_all_frames(filepath):
     csv_paths = os.listdir(filepath)
     total_frame_list = []
+    name_list = []
     for path in csv_paths:
-        total_frame_list.append(get_frames_from_csv(os.path.join(filepath, path)))
+        frames, name = get_frames_from_csv((os.path.join(filepath, path)))
+        total_frame_list.append(frames)
+        name_list.append(name)
 
-    return total_frame_list
+    return total_frame_list, name_list
 
 # draws all the lines passed in onto the axis
 def draw_lines(x_lines, y_lines, ax, line_color="black"):
@@ -71,20 +76,22 @@ def draw_frame(frame, frame_list, spectate_index, player_list):
             y = frame_list[i][-1][1]
 
         player_list[i].set_xy((x, y))
-        text_list[i].set_position((x-10, y+50))
+        text_list[i].set_position((x+15, y+50))
         if i == spectate_index:
             ax.set_xlim(x-500, x+500)
             ax.set_ylim(y-500, y+500)
 
     # for blitting
     artist_list = player_list[:]
-    artist_list.append(text_list[:])
+    artist_list += text_list[:]
     artist_list.append(ax)
     return artist_list
 
+matplotlib.rcParams["animation.ffmpeg_path"] = "/usr/bin/ffmpeg"
 # get the outline and values for each frame
 x_lines, y_lines = get_lines_from_csv("tower.csv")
-frame_list = get_all_frames("frames")
+frame_list, name_list = get_all_frames("frames")
+spectate_index = name_list.index("TAS")
 
 fig, ax = plt.subplots()
 
@@ -99,12 +106,11 @@ PLAYER_HEIGHT = 30
 
 # add all player objects with a random color
 player_list = []
-name_list = ["Gaster", "MarkoMT", "Novertex", "TAS", "Ultraeon"]
 text_list = []
 for i in range(0, len(frame_list)):
     random_color = (random.random(), random.random(), random.random())
     player_list.append(patches.Rectangle((30*i, 0), PLAYER_WIDTH, PLAYER_HEIGHT, color=random_color))
-    text_list.append(text.Text(30*i-10, 50, name_list[i], fontsize=8))
+    text_list.append(text.Text(30*i-10, 50, name_list[i], fontsize=8, horizontalalignment="center", verticalalignment="center"))
     ax.add_patch(player_list[i])
     ax.add_artist(text_list[i])
 
@@ -113,5 +119,5 @@ draw_lines(x_lines, y_lines, ax)
 # run the animation :)
 Writer = animation.writers["ffmpeg"]
 anim_writer = Writer(fps=60)
-anim = animation.FuncAnimation(fig, draw_frame, frames=5000, interval=17, blit=True, repeat=False, fargs=(frame_list, 0, player_list))
+anim = animation.FuncAnimation(fig, draw_frame, frames=5000, interval=17, blit=False, repeat=False, fargs=(frame_list, spectate_index, player_list))
 anim.save("test.mp4", writer=anim_writer)
