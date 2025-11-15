@@ -109,9 +109,10 @@ PLAYER_HEIGHT = 30
 # add all player objects with a random color
 player_list = []
 text_list = []
+interval = 1.0 / len(frame_list)
 for i in range(0, len(frame_list)):
-    random_color = (random.random(), random.random(), random.random())
-    player_list.append(patches.Rectangle((30*i, 0), PLAYER_WIDTH, PLAYER_HEIGHT, color=random_color))
+    player_color = (interval * i, 1.0 - (interval * i), 0)
+    player_list.append(patches.Rectangle((30*i, 0), PLAYER_WIDTH, PLAYER_HEIGHT, color=player_color))
     text_list.append(text.Text(30*i-10, 50, name_list[i], fontsize=8, horizontalalignment="center", verticalalignment="center"))
     ax.add_patch(player_list[i])
     ax.add_artist(text_list[i])
