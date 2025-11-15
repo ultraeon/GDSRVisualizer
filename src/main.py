@@ -89,7 +89,10 @@ def draw_frame(frame, frame_list, spectate_index, player_list):
 
 matplotlib.rcParams["animation.ffmpeg_path"] = "/usr/bin/ffmpeg"
 # get the outline and values for each frame
-x_lines, y_lines = get_lines_from_csv("tower.csv")
+x_black_lines, y_black_lines = get_lines_from_csv("lines/tower_solid.csv")
+x_red_lines, y_red_lines = get_lines_from_csv("lines/tower_killbrick.csv")
+x_blue_lines, y_blue_lines = get_lines_from_csv("lines/tower_special.csv")
+
 frame_list, name_list = get_all_frames("frames")
 spectate_index = name_list.index("TAS")
 
@@ -97,9 +100,8 @@ fig, ax = plt.subplots()
 
 # setup axis
 ax.set_aspect("equal", adjustable="box")
-ax.set_xlim(0, 500)
-ax.set_ylim(0, 500)
 ax.set_axis_off()
+ax.add_artist(text.Text(7000, 950, "Join the speedrun discord\ndiscord.gg/5whXv5Y", fontsize=16, color="red"))
 
 PLAYER_WIDTH = 30
 PLAYER_HEIGHT = 30
@@ -114,10 +116,12 @@ for i in range(0, len(frame_list)):
     ax.add_patch(player_list[i])
     ax.add_artist(text_list[i])
 
-draw_lines(x_lines, y_lines, ax)
+draw_lines(x_black_lines, y_black_lines, ax, "black")
+draw_lines(x_red_lines, y_red_lines, ax, "red")
+draw_lines(x_blue_lines, y_blue_lines, ax, "cyan")
 
 # run the animation :)
 Writer = animation.writers["ffmpeg"]
 anim_writer = Writer(fps=60)
 anim = animation.FuncAnimation(fig, draw_frame, frames=5000, interval=17, blit=False, repeat=False, fargs=(frame_list, spectate_index, player_list))
-anim.save("test.mp4", writer=anim_writer)
+anim.save("alpha1_0.mp4", writer=anim_writer)
