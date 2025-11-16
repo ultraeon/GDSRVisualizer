@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import csv
-import warnings
 
 def list_from_csv(filepath):
     input_list = []
@@ -39,6 +38,7 @@ import numpy as np
 from scipy.interpolate import CubicSpline
 import pandas as pd
 
+# shoutout to chatgpt for this
 def clean_with_spline(data, window=7, threshold=3.0):
     """
     Clean position data by removing outliers using rolling median deviation
@@ -51,7 +51,6 @@ def clean_with_spline(data, window=7, threshold=3.0):
 
     Returns:
         cleaned: numpy array of same length with outliers replaced
-        outliers: boolean mask of which elements were replaced
     """
 
     data = np.asarray(data)
@@ -91,33 +90,7 @@ def clean_with_spline(data, window=7, threshold=3.0):
     cleaned[outliers] = spline(x[outliers])
 
     return cleaned
-
-def fix_x(input_list, window_size=3):
-    for i in range(0, len(input_list)):
-        if (input_list[i][1] < 0.0) or (input_list[i][1] > 11000.0):
-            input_list[i][1] = input_list[i-1][1]
-
-    for i in range(0, len(input_list) - window_size):
-        times = []
-        actual_x = []
-        for j in range(0, window_size):
-            times.append(input_list[i+j][0])
-            actual_x.append(input_list[i+j][1])
-
-        slope = float(polyfit(times, actual_x, 1)[0])
-        intercept = float(polyfit(times, actual_x, 1)[1])
-
-        predicted_x = []
-        for val in times:
-            predicted_x.append(slope * val + intercept)
-
-        residuals = []
-        for j, actual in enumerate(actual_x):
-            residuals.append(abs(actual - predicted_x[j]))
-
-            index = argmax(residuals)
-    return 0
-
+    
 def get_processed_list(input_list):
     processed_list = fix_time(input_list)
     time_list = [row[0] for row in processed_list]
