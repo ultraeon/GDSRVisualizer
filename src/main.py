@@ -125,4 +125,4 @@ draw_lines(x_blue_lines, y_blue_lines, ax, "cyan")
 Writer = animation.writers["ffmpeg"]
 anim_writer = Writer(fps=60)
 anim = animation.FuncAnimation(fig, draw_frame, frames=5000, interval=17, blit=False, repeat=False, fargs=(frame_list, spectate_index, player_list))
-anim.save("alpha1_0.mp4", writer=anim_writer)
+anim.save("alpha1_1.mp4", writer=anim_writer)
