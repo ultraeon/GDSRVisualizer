@@ -39,7 +39,7 @@ import numpy as np
 from scipy.interpolate import CubicSpline
 import pandas as pd
 
-def clean_with_spline(data, window=7, threshold=2.0):
+def clean_with_spline(data, window=7, threshold=3.0):
     """
     Clean position data by removing outliers using rolling median deviation
     and filling them with cubic spline interpolation.
