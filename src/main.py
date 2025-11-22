@@ -42,23 +42,27 @@ def get_frames_from_csv(filepath):
     frame_list = []
     with open(filepath, "r") as file:
         reader = csv.reader(file)
-        name = next(reader)[0]
+        header = next(reader)
+        name = header[0]
+        color = int(header[1])
         for row in reader:
             frame_list.append([int(float(row[0])), int(float(row[1]))])
 
-    return frame_list, name
+    return frame_list, name, color
 
 # gets x, y coords at each frame from multiple players listed in target folder
 def get_all_frames(filepath):
     csv_paths = os.listdir(filepath)
     total_frame_list = []
     name_list = []
+    color_list = []
     for path in csv_paths:
-        frames, name = get_frames_from_csv((os.path.join(filepath, path)))
+        frames, name, color = get_frames_from_csv((os.path.join(filepath, path)))
         total_frame_list.append(frames)
         name_list.append(name)
+        color_list.append(color)
 
-    return total_frame_list, name_list
+    return total_frame_list, name_list, color_list
 
 # draws all the lines passed in onto the axis
 def draw_lines(x_lines, y_lines, ax, line_color="black"):
@@ -93,15 +97,15 @@ x_black_lines, y_black_lines = get_lines_from_csv("lines/tower_solid.csv")
 x_red_lines, y_red_lines = get_lines_from_csv("lines/tower_killbrick.csv")
 x_blue_lines, y_blue_lines = get_lines_from_csv("lines/tower_special.csv")
 
-frame_list, name_list = get_all_frames("frames")
-spectate_index = name_list.index("TAS")
+frame_list, name_list, color_list = get_all_frames("frames")
+spectate_index = name_list.index("Ultra")
 
 fig, ax = plt.subplots()
 
 # setup axis
 ax.set_aspect("equal", adjustable="box")
 ax.set_axis_off()
-ax.add_artist(text.Text(7000, 950, "Join the speedrun discord\ndiscord.gg/5whXv5Y", fontsize=16, color="red"))
+ax.add_artist(text.Text(7750, 1050, "I've put in like 30 hours to this\nso smash the like and subscribe buttons", fontsize=12, color="red"))
 
 PLAYER_WIDTH = 30
 PLAYER_HEIGHT = 30
@@ -109,9 +113,9 @@ PLAYER_HEIGHT = 30
 # add all player objects with a random color
 player_list = []
 text_list = []
-interval = 1.0 / len(frame_list)
+interval = 1.0 / (len(frame_list)-1)
 for i in range(0, len(frame_list)):
-    player_color = (interval * i, 1.0 - (interval * i), 0)
+    player_color = (interval * color_list[i], 1.0 - (interval * color_list[i]), 0)
     player_list.append(patches.Rectangle((30*i, 0), PLAYER_WIDTH, PLAYER_HEIGHT, color=player_color))
     text_list.append(text.Text(30*i-10, 50, name_list[i], fontsize=8, horizontalalignment="center", verticalalignment="center"))
     ax.add_patch(player_list[i])
