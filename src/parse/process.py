@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import csv
 
 def list_from_csv(filepath):
@@ -8,7 +7,7 @@ def list_from_csv(filepath):
         reader = csv.reader(file)
         for row in reader:
             input_list.append(row)
-            
+
     return input_list
 
 def convert_input_to_float(input_list):
@@ -23,95 +22,103 @@ def convert_input_to_float(input_list):
             continue
     return float_list
 
-def fix_time(input_list, tolerance=0.5):
-    delta = input_list[-1][0] / len(input_list)
-    fixed_list = [[0.0, 42, 225]]
-    for i in range(1, len(input_list)):
-        if ((input_list[i][0] - fixed_list[i-1][0]) < tolerance) and ((input_list[i][0] - fixed_list[i-1][0]) > 0.0):
-            fixed_list.append(input_list[i])
-        else:
-            fixed_list.append([fixed_list[i-1][0] + delta, input_list[i][1], input_list[i][2]])
+def fix_time(input_list, tolerance=0.2):
+    outlier_list = [False for row in input_list]
+    input_list[0] = [0.0, 42, 225]
+    last_valid = 0
+    for i in range(1, len(outlier_list)):
+      delta_t = input_list[i][0] - input_list[last_valid][0]
+      if((delta_t < ((i - last_valid)*tolerance)) and (delta_t > 0)):
+        last_valid = i
+      else:
+        outlier_list[i] = True
 
-    return fixed_list
+    start_index = 0
+    end_index = 0
+    for i in range(1, len(outlier_list)):
+      if outlier_list[i]:
+        if start_index == 0:
+          start_index = i
+      else:
+        if start_index != 0:
+          end_index = i
+          input_list = interpolate_time(input_list, start_index, end_index, min(i-1, 5))
+          start_index = 0
 
-import numpy as np
-from scipy.interpolate import CubicSpline
-import pandas as pd
+    return input_list
 
-# shoutout to chatgpt for this
-def clean_with_spline(data, window=9, threshold=2.0):
-    """
-    Clean position data by removing outliers using rolling median deviation
-    and filling them with cubic spline interpolation.
+def interpolate_time(input_list, start_index, end_index, amount=5):
+  points_x = []
+  points_y = []
+  for i in range(start_index-amount, start_index):
+    points_x.append(i)
+    points_y.append(input_list[i][0])
+  for i in range(end_index, end_index + amount):
+    points_x.append(i)
+    points_y.append(input_list[i][0])
 
-    Parameters:
-        data (array-like): raw 1D position data
-        window (int): rolling median window size (odd number recommended)
-        threshold (float): multiple of MAD to classify an outlier
+    m, b = np.polyfit(points_x, points_y, 1)
+    for i in range(start_index, end_index):
+      input_list[i][0] = m * i + b
+    return input_list
 
-    Returns:
-        cleaned: numpy array of same length with outliers replaced
-    """
+def regression_smooth(input_list, index, tolerance=700.0, amount=3):
+  outlier_list = [False for row in input_list]
+  last_valid = 0
+  for i in range(1, len(outlier_list)):
+    if (abs(input_list[last_valid][index]-input_list[i][index]) < (tolerance * (input_list[i][0]-input_list[last_valid][0]))):
+      last_valid = i
+    else:
+      outlier_list[i] = True
 
-    data = np.asarray(data)
-    n = len(data)
+  start_index = 0
+  end_index = 0
+  for i in range(0, len(outlier_list)):
+    if outlier_list[i]:
+      if start_index == 0:
+        start_index = i
+    else:
+      if start_index != 0:
+        end_index = i
+        input_list = interpolate_regression(input_list, index, start_index, end_index, min(amount, i-1))
+        start_index = 0
 
-    # --- 1. Compute rolling median ---
-    roll_med = (
-        pd.Series(data)
-        .rolling(window=window, center=True, min_periods=1)
-        .median()
-        .to_numpy()
-    )
+  return input_list
 
-    # --- 2. Compute absolute deviation from rolling median ---
-    deviation = np.abs(data - roll_med)
-    mad = np.median(deviation)  # Median Absolute Deviation
+def interpolate_regression(input_list, index, start_index, end_index, amount):
+  points_x = []
+  points_y = []
+  for i in range(start_index-amount, start_index):
+    points_x.append(input_list[i][0])
+    points_y.append(input_list[i][index])
+  for i in range(end_index, end_index+amount):
+    points_x.append(input_list[i][0])
+    points_y.append(input_list[i][index])
 
-    # Avoid divide-by-zero in perfectly flat data
-    if mad == 0:
-        mad = 1e-9
+  m, b = np.polyfit(points_x, points_y, 1)
+  for i in range(start_index, end_index):
+    input_list[i][index] = m * input_list[i][0] + b
+  return input_list
 
-    # --- 3. Detect outliers ---
-    outliers = deviation > threshold * mad
-
-    # --- 4. Cubic spline interpolation to fill outliers ---
-    x = np.arange(n)
-    good_x = x[~outliers]
-    good_y = data[~outliers]
-
-    # If too few points remain, just return original
-    if len(good_x) < 4:
-        return data.copy(), outliers
-
-    spline = CubicSpline(good_x, good_y)
-
-    cleaned = data.copy()
-    cleaned[outliers] = spline(x[outliers])
-
-    return cleaned
-    
 def get_processed_list(input_list):
-    processed_list = fix_time(input_list)
-    time_list = [row[0] for row in processed_list]
-    x_list = [row[1] for row in processed_list]
-    y_list = [row[2] for row in processed_list]
-    x_list = clean_with_spline(x_list)
-    y_list = clean_with_spline(y_list)
-
-    for i in range(0, len(processed_list)):
-        processed_list[i] = [time_list[i], x_list[i], y_list[i]]
-
+    processed_list = fix_time(input_list, tolerance=0.1)
+    processed_list = regression_smooth(processed_list, tolerance=1000.0, index=1)
+    processed_list = regression_smooth(processed_list, tolerance=1000.0, index=2)
     return processed_list
 
 def get_frame_list(input_list, fps=60):
+    input_list[0] = [0.0, 42, 225]
     frame_list = [[None, None] for i in range(0, fps*len(input_list))]
     last_index = 0
     for row in input_list:
         index = int(row[0] / (1/float(fps)))
         frame_list[index] = row[1:]
+        if frame_list[index][0] > 11000 or frame_list[index][0] < 0:
+          frame_list[index] = [None, None]
+        elif frame_list[index][1] > 950 or frame_list[index][1] < 0:
+          frame_list[index] = [None, None]
         last_index = index
-    
+
     i = 0
     while i < len(frame_list):
         if frame_list[i] == [None, None]:
@@ -121,7 +128,7 @@ def get_frame_list(input_list, fps=60):
                 del frame_list[i]
                 i -= 1
         i += 1
-    
+
     return frame_list
 
 def pack_frame_list_to_csv(filepath, frame_list):
@@ -129,9 +136,8 @@ def pack_frame_list_to_csv(filepath, frame_list):
         writer = csv.writer(file)
         writer.writerows(frame_list)
 
-warnings.filterwarnings("error", category=RuntimeWarning)
 input_list = list_from_csv("unprocessed_frames.csv")
-float_list = convert_input_to_float(input_list[:3900])
+float_list = convert_input_to_float(input_list[:])
 processed_list = get_processed_list(float_list)
 frame_list = get_frame_list(processed_list)
-pack_frame_list_to_csv("frames/frames.csv", frame_list)
+pack_frame_list_to_csv("blank123_frames.csv", frame_list[:])
