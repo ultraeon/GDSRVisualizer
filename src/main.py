@@ -119,7 +119,7 @@ for i in range(0, len(frame_list)):
     player_list.append(patches.Rectangle((30*i, 0), PLAYER_WIDTH, PLAYER_HEIGHT, color=player_color))
     text_list.append(text.Text(30*i-10, 50, name_list[i], fontsize=8, horizontalalignment="center", verticalalignment="center"))
     ax.add_patch(player_list[i])
-    ax.add_artist(text_list[i])
+    #ax.add_artist(text_list[i])
 
 draw_lines(x_black_lines, y_black_lines, ax, "black")
 draw_lines(x_red_lines, y_red_lines, ax, "red")
