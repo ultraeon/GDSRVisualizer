@@ -98,14 +98,14 @@ x_red_lines, y_red_lines = get_lines_from_csv("lines/tower_killbrick.csv")
 x_blue_lines, y_blue_lines = get_lines_from_csv("lines/tower_special.csv")
 
 frame_list, name_list, color_list = get_all_frames("frames")
-spectate_index = name_list.index("Ultra")
+spectate_index = name_list.index("Anir")
 
 fig, ax = plt.subplots()
 
 # setup axis
 ax.set_aspect("equal", adjustable="box")
 ax.set_axis_off()
-ax.add_artist(text.Text(7750, 1050, "I've put in like 30 hours to this\nso smash the like and subscribe buttons", fontsize=12, color="red"))
+ax.add_artist(text.Text(7750, 1050, "I've put in like 30 hours to this\nso you should smash the like and subscribe buttons.", fontsize=12, color="red"))
 
 PLAYER_WIDTH = 30
 PLAYER_HEIGHT = 30
@@ -115,8 +115,8 @@ player_list = []
 text_list = []
 interval = 1.0 / (len(frame_list)-1)
 for i in range(0, len(frame_list)):
-    player_color = (interval * color_list[i], 1.0 - (interval * color_list[i]), 0)
-    player_list.append(patches.Rectangle((30*i, 0), PLAYER_WIDTH, PLAYER_HEIGHT, color=player_color))
+    player_color = (random.random(), random.random(), random.random())
+    player_list.append(patches.Rectangle((30*i, 0), PLAYER_WIDTH, PLAYER_HEIGHT, facecolor=player_color, edgecolor="black", linewidth=1))
     text_list.append(text.Text(30*i-10, 50, name_list[i], fontsize=8, horizontalalignment="center", verticalalignment="center"))
     ax.add_patch(player_list[i])
     #ax.add_artist(text_list[i])
