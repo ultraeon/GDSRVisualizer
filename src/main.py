@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.patches as patches
 import matplotlib.text as text
+import matplotlib.image as mpimg
 import random
 
 import csv
@@ -115,11 +116,14 @@ player_list = []
 text_list = []
 interval = 1.0 / (len(frame_list)-1)
 for i in range(0, len(frame_list)):
-    player_color = (random.random(), random.random(), random.random())
+    player_color = (color_list[i]*interval, 1.0-(color_list[i]*interval), 0)
     player_list.append(patches.Rectangle((30*i, 0), PLAYER_WIDTH, PLAYER_HEIGHT, facecolor=player_color, edgecolor="black", linewidth=1))
     text_list.append(text.Text(30*i-10, 50, name_list[i], fontsize=8, horizontalalignment="center", verticalalignment="center"))
     ax.add_patch(player_list[i])
     #ax.add_artist(text_list[i])
+
+img = mpimg.imread("IMG_3781.jpeg")
+plt.imshow(img, extent=(0, 1200, 105, 1005))
 
 draw_lines(x_black_lines, y_black_lines, ax, "black")
 draw_lines(x_red_lines, y_red_lines, ax, "red")
