@@ -8,35 +8,21 @@ import random
 
 import csv
 import os
-# get all the lines representing the level from a csv
-def get_lines_from_csv(filepath):
-    x_lines = []
-    y_lines = []
 
-    # very lazy approach
-    # csv needs to alternate between blank row, x row, and y row
-    with open(filepath, "r") as file:
+def add_image(filepath, bounds):
+    image = mpimg.imread(filepath)
+    plt.imshow(image, extent=bounds)
+
+def load_images():
+    with open(os.path.join("images", "image_info.csv"), "r") as file:
         reader = csv.reader(file)
-        type = "blank"
         for row in reader:
-            if type == "blank":
-                type = "x"
-            elif type == "x":
-                type = "y"
-                x_vals = []
-                for val in row:
-                    if val:
-                        x_vals.append(int(val))
-                x_lines.append(x_vals)
-            else:
-                type = "blank"
-                y_vals = []
-                for val in row:
-                    if val:
-                        y_vals.append(int(val))
-                y_lines.append(y_vals)
-
-    return x_lines, y_lines
+            filepath = os.path.join("images", row[0])
+            x_left = float(row[1])
+            x_right = float(row[2])
+            y_bottom = float(row[3])
+            y_top = float(row[4])
+            add_image(filepath, (x_left, x_right, y_bottom, y_top))
 
 # gets x, y coords at each frame from a csv file
 def get_frames_from_csv(filepath):
@@ -65,11 +51,6 @@ def get_all_frames(filepath):
 
     return total_frame_list, name_list, color_list
 
-# draws all the lines passed in onto the axis
-def draw_lines(x_lines, y_lines, ax, line_color="black"):
-    for i in range(0, len(x_lines)):
-        ax.plot(x_lines[i], y_lines[i], color=line_color)
-
 # redraws at each frame to incorporate new positions of each player and the camera
 def draw_frame(frame, frame_list, spectate_index, player_list):
     for i in range(0, len(player_list)):
@@ -83,8 +64,8 @@ def draw_frame(frame, frame_list, spectate_index, player_list):
         player_list[i].set_xy((x, y))
         text_list[i].set_position((x+15, y+50))
         if i == spectate_index:
-            ax.set_xlim(x-500, x+500)
-            ax.set_ylim(y-500, y+500)
+            ax.set_xlim(x-192, x+192)
+            ax.set_ylim(y-56, y+160)
 
     # for blitting
     artist_list = player_list[:]
@@ -93,20 +74,18 @@ def draw_frame(frame, frame_list, spectate_index, player_list):
     return artist_list
 
 matplotlib.rcParams["animation.ffmpeg_path"] = "/usr/bin/ffmpeg"
+matplotlib.rcParams["figure.facecolor"] = "black"
+matplotlib.rcParams["axes.facecolor"] = "black"
 # get the outline and values for each frame
-x_black_lines, y_black_lines = get_lines_from_csv("lines/tower_solid.csv")
-x_red_lines, y_red_lines = get_lines_from_csv("lines/tower_killbrick.csv")
-x_blue_lines, y_blue_lines = get_lines_from_csv("lines/tower_special.csv")
 
 frame_list, name_list, color_list = get_all_frames("frames")
-spectate_index = name_list.index("Anir")
+spectate_index = name_list.index("TAS")
 
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(19.2, 10.8), dpi=100)
 
 # setup axis
-ax.set_aspect("equal", adjustable="box")
+ax.set_aspect("equal")
 ax.set_axis_off()
-ax.add_artist(text.Text(7750, 1050, "I've put in like 30 hours to this\nso you should smash the like and subscribe buttons.", fontsize=12, color="red"))
 
 PLAYER_WIDTH = 30
 PLAYER_HEIGHT = 30
@@ -122,15 +101,10 @@ for i in range(0, len(frame_list)):
     ax.add_patch(player_list[i])
     #ax.add_artist(text_list[i])
 
-img = mpimg.imread("IMG_3781.jpeg")
-plt.imshow(img, extent=(0, 1200, 105, 1005))
-
-draw_lines(x_black_lines, y_black_lines, ax, "black")
-draw_lines(x_red_lines, y_red_lines, ax, "red")
-draw_lines(x_blue_lines, y_blue_lines, ax, "cyan")
+load_images()
 
 # run the animation :)
 Writer = animation.writers["ffmpeg"]
 anim_writer = Writer(fps=60)
-anim = animation.FuncAnimation(fig, draw_frame, frames=5000, interval=17, blit=False, repeat=False, fargs=(frame_list, spectate_index, player_list))
-anim.save("alpha1_1.mp4", writer=anim_writer)
+anim = animation.FuncAnimation(fig, draw_frame, frames=50, interval=17, blit=False, repeat=False, fargs=(frame_list, spectate_index, player_list))
+anim.save("tower_comparison.mp4", writer=anim_writer)
